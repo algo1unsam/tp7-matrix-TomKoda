@@ -2,7 +2,101 @@ import mensajeria.*
 import mensajeros.*
 
 
-describe "2 " {}
+describe "2 " {
+    test "Contratar"{
+        mensajeria.contratarMensajero(neo)
+        assert.equals(#{neo}, mensajeria.mensajeros())
+    }
+
+    test "Despedir Uno" {
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        mensajeria.despedir(neo)
+        assert.equals(#{morfeo}, mensajeria.mensajeros())
+    }
+
+    test "Despedir Todos" {
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        mensajeria.despedirTodos()
+        assert.equals(#{}, mensajeria.mensajeros())
+    }
+
+    test "Mensajeria grande" {
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        mensajeria.contratarMensajero(trinity)
+        assert.that(mensajeria.esGrande())
+    }
+
+    test "Mensajeria chica" {
+        mensajeria.contratarMensajero(neo)
+        assert.notThat(mensajeria.esGrande())
+    }
+
+    test "El primero puede entregar"{
+        paquete.pagar()
+        mensajeria.contratarMensajero(neo)
+        assert.that(mensajeria.primeroPuedeEntregar(paquete))
+    }
+
+    test "Peso ultimo mensajero"{
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        assert.equals(590, mensajeria.pesoUltimo())
+    }
+}
 
 
-describe "3 " {}
+describe "3 " {
+
+    method contratarTodos(){
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        mensajeria.contratarMensajero(trinity) 
+    }
+    test "Todos pueden llevar el paquetito"{
+        assert.that(paquetito.puedeSerEntregadoPor(neo))
+        assert.that(paquetito.puedeSerEntregadoPor(morfeo))
+        assert.that(paquetito.puedeSerEntregadoPor(trinity))
+    }
+
+    test "Precio Paqueton" {
+        assert.equals(200, paqueton.precio())
+    }
+
+    test "Precio paquete" {
+        assert.equals(50, paquete.precio())
+    }
+
+    test "La mensajeria puede entregar?"{
+        self.contratarTodos()
+        assert.that(mensajeria.puedeEntregar(paquete))
+    }
+
+    test "Quienes pueden entregar el paquete?" {
+        self.contratarTodos()
+        paquete.pagar()
+        assert.equals(#{neo,morfeo,trinity},mensajeria.QuienesPuedenEntregar(paquete))
+    }
+
+    test "Mensajeria con sobrepeso?"{
+        self.contratarTodos()
+        assert.notThat(mensajeria.sobrepeso())
+        camion.acoplados(100)
+        assert.that(mensajeria.sobrepeso())
+    }
+
+    test "La Mensajeria no puede entregar el paquete"{
+        mensajeria.entregar(paquete)
+        assert.equals(#{paquete}, mensajeria.pendientes())
+    }
+
+    test "Conocer la factuarion"{
+        mensajeria.contratarMensajero(neo)
+        mensajeria.entregar(paquete)
+        assert.equals(50, mensajeria.facturacion())
+    }
+
+
+}
