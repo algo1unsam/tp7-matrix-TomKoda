@@ -56,7 +56,56 @@ describe "Test de mensajeros primera parte " {
     }
 }
 
+describe "Test Neo" {
+  	test "Peso" {
+		assert.equals(0, neo.peso())
+  	}
 
+	test "Credito inicial" {
+		assert.equals(0, neo.credito())
+	}
 
+	test "Puede llamar"{
+		neo.credito(100)
+		assert.that(neo.puedeLlamar())
+	}
+
+	test "Acceso a matrix"{
+		neo.credito(100)
+		assert.that(matrix.dejarPasar(neo))
+	}
+
+	test "No se puede entregar paquete"{
+		neo.credito(100)
+		paquete.destino(matrix)
+		assert.notThat(paquete.puedeSerEntregadoPor(neo))
+
+	}
+}
+
+describe "Test Trinity" {
+  	test "Peso Inicial" {
+		assert.equals(900, trinity.peso())
+  	}
+
+	test "Puede llamar"{
+		assert.that(trinity.puedeLlamar())
+	}
+
+	test "Entraga en Puente"{
+		paquete.pagar()
+		assert.that(paquete.puedeSerEntregadoPor(trinity))
+	}
+
+	test "Entraga en Matrix"{
+		paquete.pagar()
+		paquete.destino(matrix)
+		assert.that(paquete.puedeSerEntregadoPor(trinity))
+	}
+
+	test "entrega paquete si pagar" {
+		assert.notThat(paquete.puedeSerEntregadoPor(trinity))
+	}
+}
 
 
