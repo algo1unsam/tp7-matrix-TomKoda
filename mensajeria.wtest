@@ -77,25 +77,135 @@ describe "3 " {
     test "Quienes pueden entregar el paquete?" {
         self.contratarTodos()
         paquete.pagar()
-        assert.equals(#{neo,morfeo,trinity},mensajeria.QuienesPuedenEntregar(paquete))
+        assert.equals(#{neo,morfeo,trinity},mensajeria.quienesPuedenEntregar(paquete))
     }
 
     test "Mensajeria con sobrepeso?"{
         self.contratarTodos()
-        assert.notThat(mensajeria.sobrepeso())
+        assert.notThat(mensajeria.sobrePeso())
         camion.acoplados(100)
-        assert.that(mensajeria.sobrepeso())
+        assert.that(mensajeria.sobrePeso())
     }
 
     test "La Mensajeria no puede entregar el paquete"{
-        mensajeria.entregar(paquete)
+        mensajeria.enviar(paquete)
         assert.equals(#{paquete}, mensajeria.pendientes())
     }
 
     test "Conocer la factuarion"{
         mensajeria.contratarMensajero(neo)
-        mensajeria.entregar(paquete)
-        assert.equals(50, mensajeria.facturacion())
+        mensajeria.enviar(paquete)
+        assert.equals(50, mensajeria.balance())
+    }
+
+    test "Enviar conjunto"{
+        self.contratarTodos()
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        assert.equals(250, mensajeria.balance()) // Si se envian los 2 deberia pasar de 0 a 250
+    }
+
+    test "No logra enviar conjunto"{
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        assert.equals(#{paquete,paqueton}, mensajeria.pendientes()) // Si se envian los 2 deberia pasar de 0 a 250
+    }
+
+    test "Enviar pendiente mas caro"{
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        self.contratarTodos()
+        mensajeria.enviarPendienteCaro()
+        assert.equals(#{paquete}, mensajeria.pendientes())
+
+    }
+
+}
+
+describe "Adicional" {
+
+    method contratarTodos(){
+        mensajeria.contratarMensajero(neo)
+        mensajeria.contratarMensajero(morfeo)
+        mensajeria.contratarMensajero(trinity) 
+        mensajeria.contratarMensajero(mensajeroOriginal) 
+    }
+
+    test "Valores base mensaje" {
+        assert.equals(10, mensaje.precio())
+        assert.equals(puente, mensaje.destino())
+        mensaje.destino(matrix)
+        assert.equals(matrix, mensaje.destino())
+        assert.notThat(mensaje.estaPago())
+        mensaje.pagar()
+        assert.that(mensaje.estaPago())
+    }
+
+    test "Valores base mensajero nuevo" {
+        assert.equals(1, mensajeroOriginal.peso())
+        assert.notThat(matrix.dejarPasar(mensajeroOriginal))
+        mensajeroOriginal.credito(10)
+        assert.that(matrix.dejarPasar(mensajeroOriginal))
+        assert.that(puente.dejarPasar(mensajeroOriginal))
+    }
+
+    test "Todos pueden llevar el paquetito"{
+        assert.that(paquetito.puedeSerEntregadoPor(neo))
+        assert.that(paquetito.puedeSerEntregadoPor(morfeo))
+        assert.that(paquetito.puedeSerEntregadoPor(trinity))
+    }
+
+    test "Precio Paqueton" {
+        assert.equals(200, paqueton.precio())
+    }
+
+    test "Precio paquete" {
+        assert.equals(50, paquete.precio())
+    }
+
+    test "La mensajeria puede entregar?"{
+        self.contratarTodos()
+        assert.that(mensajeria.puedeEntregar(paquete))
+    }
+
+    test "Quienes pueden entregar el paquete?" {
+        self.contratarTodos()
+        paquete.pagar()
+        assert.equals(#{neo,morfeo,trinity,mensajeroOriginal},mensajeria.quienesPuedenEntregar(paquete))
+    }
+
+    test "Mensajeria con sobrepeso?"{
+        self.contratarTodos()
+        assert.notThat(mensajeria.sobrePeso())
+        camion.acoplados(100)
+        assert.that(mensajeria.sobrePeso())
+    }
+
+    test "La Mensajeria no puede entregar el paquete"{
+        mensajeria.enviar(paquete)
+        assert.equals(#{paquete}, mensajeria.pendientes())
+    }
+
+    test "Conocer la factuarion"{
+        mensajeria.contratarMensajero(mensajeroOriginal)
+        mensajeria.enviar(paquete)
+        assert.equals(50, mensajeria.balance())
+    }
+
+    test "Enviar conjunto"{
+        self.contratarTodos()
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        assert.equals(250, mensajeria.balance()) // Si se envian los 2 deberia pasar de 0 a 250
+    }
+
+    test "No logra enviar conjunto"{
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        assert.equals(#{paquete,paqueton}, mensajeria.pendientes()) // Si se envian los 2 deberia pasar de 0 a 250
+    }
+
+    test "Enviar pendiente mas caro"{
+        mensajeria.enviarConjunto(#{paquete,paqueton})
+        self.contratarTodos()
+        mensajeria.enviarPendienteCaro()
+        assert.equals(#{paquete}, mensajeria.pendientes())
+
     }
 
 
