@@ -6,6 +6,7 @@ class Courier {
 
     method weight() = mobilityStrategy.weight(weight)
     method canCall() = commsStrategy.canCall(credit)
+    
 }
 
 class FlyingMobility {
@@ -58,7 +59,7 @@ class SimplePackage inherits Package{
 
 class MultiStopPackage inherits Package(price = 0){
     const property dropLocations
-    const property remainingLocations = dropLocations
+    const property remainingLocations = dropLocations.copy()
     const stopPrice = 100
     var amountPaid = 0
     
@@ -80,8 +81,7 @@ class MultiStopPackage inherits Package(price = 0){
 
     method isDeliverable(courier) = isPaid && dropLocations.all({location => location.canPass(courier)})
 }
-class SmallPackage inherits SimplePackage(price = 0){
-    override method isPaid() = true
+class SmallPackage inherits SimplePackage(price = 0, isPaid = true){
 }
 
 class Location {
@@ -101,18 +101,24 @@ const matrix = new CommsRestrictedLocation()
 const bridge = new WeightRestrictedLocation(weightLimit = 1000)
 
 const simplePackage = new SimplePackage(dropLocation = bridge, price = 50)
-const smallPackage = new SmallPackage(dropLocation = matrix)
+const smallPackage = new SmallPackage(dropLocation = bridge)
 const bigPackage = new MultiStopPackage(dropLocations = [matrix,bridge])
+const matrixPackage = new SimplePackage(dropLocation = matrix, price = 10)
+
+
+const truck = new VehicleWithTrailer(weight = 500)
+const skateBoard = new Vehicle(weight = 1)
+const reverseTrike = new Vehicle(weight = 100)
 
 const morfeo = new Courier(weight = 90,
-                           mobilityStrategy = new GroundMobility(vehicle = new VehicleWithTrailer(weight = 500)),
+                           mobilityStrategy = new GroundMobility(vehicle = truck),
                            commsStrategy = new ByCreditComms())
 const neo = new Courier(weight = 90,
                         mobilityStrategy = new FlyingMobility(),
                         commsStrategy = new ByCreditComms())
 const trinity = new Courier(weight = 900,
-                            mobilityStrategy = new GroundMobility(vehicle = new Vehicle(weight = 1)),
+                            mobilityStrategy = new GroundMobility(vehicle = skateBoard),
                             commsStrategy = new BuiltInComms())
-const samPorter = new Courier(weight = 900,
-                              mobilityStrategy = new GroundMobility(vehicle = new Vehicle(weight = 100)),
+const samPorter = new Courier(weight = 90,
+                              mobilityStrategy = new GroundMobility(vehicle = reverseTrike),
                               commsStrategy = new BuiltInComms())

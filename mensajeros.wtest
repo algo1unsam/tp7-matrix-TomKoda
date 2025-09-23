@@ -1,110 +1,107 @@
+import wollok.mirror.*
 import mensajeros.*
 
 describe "Test de mensajeros primera parte " {
-	
+
 	test "Morfeo en camion con 1 acoplado pesa 90kg + 500kg "{
-	    assert.equals(590, morfeo.peso())
-}
+	    assert.equals(590, morfeo.weight())
+	}
 
 	test "Camion con 2 acoplados pesan 1000kg + 90kg"{
-		camion.acoplados(2)
-	    assert.equals(1090, morfeo.peso()) 
-}
+		truck.trailerCount(2)
+	    assert.equals(1090, morfeo.weight()) 
+	}
 
 	test "monopatin pesa 1kg + "{
-        morfeo.transporte(monopatin)
-	    assert.equals(1, monopatin.peso())
-}
+	    assert.equals(1, skateBoard.weight())
+	}
 
 	test "Morfeo en monopatin pesa 90kg + 1kg "{
-		morfeo.transporte(monopatin)
-	    assert.equals(91, morfeo.peso() )
-}
+		morfeo.mobilityStrategy().vehicle(skateBoard)
+	    assert.equals(91, morfeo.weight() )
+	}
 
 	test "Morfeo anda en el Nabucodonosor"{
-	    assert.equals(morfeo.transporte(), camion)
-}
+	    assert.equals(truck, morfeo.mobilityStrategy().vehicle())
+	}
 
 	test "el puente deja pasar un mensajero liviano"{
-	    assert.that(puente.dejarPasar(morfeo))
+	    assert.that(bridge.canPass(morfeo))
     }
 
     test "el puente no deja pasar un mensajero pesado"{
-        camion.acoplados(3)
-	    assert.notThat(puente.dejarPasar(morfeo))
+        truck.trailerCount(3)
+	    assert.notThat(bridge.canPass(morfeo))
     }
 
     test "un paquete estaPago"{
-		paquete.pago(true)
-	    assert.that(paquete.estaPago())
+		simplePackage.pay(50)
+	    assert.that(simplePackage.isPaid())
     }
 
     test "un paquete pago con destino a Alsina puede ser entregado por Morfeo en camion liviano"{
-		paquete.pagar()
-		paquete.destino(puente)
-	    assert.that(paquete.puedeSerEntregadoPor(morfeo))
+		simplePackage.pay(50)
+	    assert.that(simplePackage.isDeliverable(morfeo))
     }
 
     test "un paquete no pago no puede ser entregado por Morfeo"{
-	    assert.notThat(paquete.puedeSerEntregadoPor(morfeo))
+	    assert.notThat(simplePackage.isDeliverable(morfeo))
     }
 
 	test "un paquete pago no puede entregado por Morfeo en camion de 3 acoplados"{
-		paquete.pagar()
-        camion.acoplados(3)
-	    assert.notThat(paquete.puedeSerEntregadoPor(morfeo))
+		simplePackage.pay(50)
+        truck.trailerCount(3)
+	    assert.notThat(simplePackage.isDeliverable(morfeo))
     }
 }
 
 describe "Test Neo" {
   	test "Peso" {
-		assert.equals(0, neo.peso())
+		assert.equals(0, neo.weight())
   	}
 
 	test "Credito inicial" {
-		assert.equals(0, neo.credito())
+		assert.equals(0, neo.credit())
 	}
 
 	test "Puede llamar"{
-		neo.credito(100)
-		assert.that(neo.puedeLlamar())
+		neo.credit(100)
+		assert.that(neo.canCall())
 	}
 
 	test "Acceso a matrix"{
-		neo.credito(100)
-		assert.that(matrix.dejarPasar(neo))
+		neo.credit(100)
+		assert.that(matrix.canPass(neo))
 	}
 
 	test "No se puede entregar paquete"{
-		neo.credito(100)
-		paquete.destino(matrix)
-		assert.notThat(paquete.puedeSerEntregadoPor(neo))
+		neo.credit(100)
+		assert.notThat(matrixPackage.isDeliverable(neo))
 
 	}
 }
 
 describe "Test Trinity" {
   	test "Peso Inicial" {
-		assert.equals(900, trinity.peso())
+		assert.equals(901, trinity.weight())
   	}
 
 	test "Puede llamar"{
-		assert.that(trinity.puedeLlamar())
+		assert.that(trinity.canCall())
 	}
 
 	test "Entraga en Puente"{
-		paquete.pagar()
-		assert.that(paquete.puedeSerEntregadoPor(trinity))
+		simplePackage.pay(50)
+		assert.that(simplePackage.isDeliverable(trinity))
 	}
 
 	test "Entraga en Matrix"{
-		paquete.pagar()
-		paquete.destino(matrix)
-		assert.that(paquete.puedeSerEntregadoPor(trinity))
+		matrixPackage.pay(50)
+		assert.that(matrixPackage.isDeliverable(trinity))
 	}
 
 	test "entrega paquete si pagar" {
-		assert.notThat(paquete.puedeSerEntregadoPor(trinity))
+		assert.notThat(simplePackage.isDeliverable(trinity))
 	}
 }
 

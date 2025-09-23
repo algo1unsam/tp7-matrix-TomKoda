@@ -3,117 +3,124 @@ import mensajeros.*
 
 
 describe "2 " {
+
+    method hire(){
+        matrixDelivery.hireCourier(neo)
+        matrixDelivery.hireCourier(morfeo)
+        matrixDelivery.hireCourier(trinity)
+    }
+
     test "Contratar"{
-        mensajeria.contratarMensajero(neo)
-        assert.equals(#{neo}, mensajeria.mensajeros())
+        matrixDelivery.hireCourier(neo)
+        assert.equals(#{neo}, matrixDelivery.getCouriers())
     }
 
     test "Despedir Uno" {
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        mensajeria.despedir(neo)
-        assert.equals(#{morfeo}, mensajeria.mensajeros())
+        matrixDelivery.hireCourier(neo)
+        matrixDelivery.fireCourier(neo)
+        assert.equals(#{}, matrixDelivery.getCouriers())
     }
 
     test "Despedir Todos" {
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        mensajeria.despedirTodos()
-        assert.equals(#{}, mensajeria.mensajeros())
+        self.hire()
+        matrixDelivery.fireAllCouriers()
+        assert.equals(#{}, matrixDelivery.getCouriers())
     }
 
-    test "Mensajeria grande" {
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        mensajeria.contratarMensajero(trinity)
-        assert.that(mensajeria.esGrande())
+    test "matrixDelivery grande" {
+        self.hire()
+        assert.that(matrixDelivery.isLarge())
     }
 
-    test "Mensajeria chica" {
-        mensajeria.contratarMensajero(neo)
-        assert.notThat(mensajeria.esGrande())
+    test "matrixDelivery chica" {
+        matrixDelivery.hireCourier(neo)
+        assert.notThat(matrixDelivery.isLarge())
     }
 
     test "El primero puede entregar"{
-        paquete.pagar()
-        mensajeria.contratarMensajero(neo)
-        assert.that(mensajeria.primeroPuedeEntregar(paquete))
+        simplePackage.pay(50)
+        matrixDelivery.hireCourier(neo)
+        assert.that(matrixDelivery.canFirstDeliver(simplePackage))
     }
 
     test "Peso ultimo mensajero"{
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        assert.equals(590, mensajeria.pesoUltimo())
+        matrixDelivery.hireCourier(neo)
+        matrixDelivery.hireCourier(morfeo)
+        assert.equals(590, matrixDelivery.lastWeight())
     }
 }
 
 
 describe "3 " {
 
-    method contratarTodos(){
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        mensajeria.contratarMensajero(trinity) 
+    method hire(){
+        matrixDelivery.hireCourier(neo)
+        matrixDelivery.hireCourier(morfeo)
+        matrixDelivery.hireCourier(trinity) 
     }
-    test "Todos pueden llevar el paquetito"{
-        assert.that(paquetito.puedeSerEntregadoPor(neo))
-        assert.that(paquetito.puedeSerEntregadoPor(morfeo))
-        assert.that(paquetito.puedeSerEntregadoPor(trinity))
-    }
-
-    test "Precio Paqueton" {
-        assert.equals(200, paqueton.precio())
+    test "Todos pueden llevar el smallPackage"{
+        assert.that(smallPackage.isDeliverable(neo))
+        assert.that(smallPackage.isDeliverable(morfeo))
+        assert.that(smallPackage.isDeliverable(trinity))
     }
 
-    test "Precio paquete" {
-        assert.equals(50, paquete.precio())
+    test "Precio bigPackage" {
+        assert.equals(200, bigPackage.price())
+    }
+
+    test "Precio simplePackage" {
+        assert.equals(50, simplePackage.price())
     }
 
     test "La mensajeria puede entregar?"{
-        self.contratarTodos()
-        assert.that(mensajeria.puedeEntregar(paquete))
+        self.hire()
+        simplePackage.pay(50)
+        assert.that(matrixDelivery.canDeliver(simplePackage))
     }
 
-    test "Quienes pueden entregar el paquete?" {
-        self.contratarTodos()
-        paquete.pagar()
-        assert.equals(#{neo,morfeo,trinity},mensajeria.quienesPuedenEntregar(paquete))
+    test "Quienes pueden entregar el simplePackage?" {
+        self.hire()
+        simplePackage.pay(50)
+        assert.equals(#{neo,morfeo,trinity},matrixDelivery.whoCanDeliver(simplePackage))
     }
 
     test "Mensajeria con sobrepeso?"{
-        self.contratarTodos()
-        assert.notThat(mensajeria.sobrePeso())
-        camion.acoplados(100)
-        assert.that(mensajeria.sobrePeso())
+        self.hire()
+        assert.notThat(matrixDelivery.overWeight())
+        truck.trailerCount(100)
+        assert.that(matrixDelivery.overWeight())
     }
 
-    test "La Mensajeria no puede entregar el paquete"{
-        mensajeria.enviar(paquete)
-        assert.equals(#{paquete}, mensajeria.pendientes())
+    test "La mensajeria no puede entregar el simplePackage"{
+        matrixDelivery.deliver(simplePackage)
+        assert.equals(#{simplePackage}, matrixDelivery.getPendingPackages())
     }
 
     test "Conocer la factuarion"{
-        mensajeria.contratarMensajero(neo)
-        mensajeria.enviar(paquete)
-        assert.equals(50, mensajeria.balance())
+        matrixDelivery.hireCourier(neo)
+        simplePackage.pay(50)
+        matrixDelivery.deliver(simplePackage)
+        assert.equals(50, matrixDelivery.balance())
     }
 
     test "Enviar conjunto"{
-        self.contratarTodos()
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        assert.equals(250, mensajeria.balance()) // Si se envian los 2 deberia pasar de 0 a 250
+        self.hire()
+        simplePackage.pay(50)
+        bigPackage.pay(200)
+        matrixDelivery.deliverBatch(#{simplePackage,bigPackage})
+        assert.equals(250, matrixDelivery.balance()) // Si se envian los 2 deberia pasar de 0 a 250
     }
 
     test "No logra enviar conjunto"{
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        assert.equals(#{paquete,paqueton}, mensajeria.pendientes()) // Si se envian los 2 deberia pasar de 0 a 250
+        matrixDelivery.deliverBatch(#{simplePackage,bigPackage})
+        assert.equals(#{simplePackage,bigPackage}, matrixDelivery.getPendingPackages()) // Si se envian los 2 deberia pasar de 0 a 250
     }
 
     test "Enviar pendiente mas caro"{
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        self.contratarTodos()
-        mensajeria.enviarPendienteCaro()
-        assert.equals(#{paquete}, mensajeria.pendientes())
+        matrixDelivery.deliverBatch(#{simplePackage,bigPackage})
+        self.hire()
+        matrixDelivery.deliverMaxPendingPackage()
+        assert.equals(#{simplePackage}, matrixDelivery.getPendingPackages())
 
     }
 
@@ -121,90 +128,71 @@ describe "3 " {
 
 describe "Adicional" {
 
-    method contratarTodos(){
-        mensajeria.contratarMensajero(neo)
-        mensajeria.contratarMensajero(morfeo)
-        mensajeria.contratarMensajero(trinity) 
-        mensajeria.contratarMensajero(mensajeroOriginal) 
+    method hire(){
+        matrixDelivery.hireCourier(neo)
+        matrixDelivery.hireCourier(morfeo)
+        matrixDelivery.hireCourier(trinity) 
+        matrixDelivery.hireCourier(samPorter) 
     }
 
-    test "Valores base mensaje" {
-        assert.equals(10, mensaje.precio())
-        assert.equals(puente, mensaje.destino())
-        mensaje.destino(matrix)
-        assert.equals(matrix, mensaje.destino())
-        assert.notThat(mensaje.estaPago())
-        mensaje.pagar()
-        assert.that(mensaje.estaPago())
+    test "Paquete nuevo" {
+        assert.equals(10, matrixPackage.price())
+        assert.equals(matrix, matrixPackage.dropLocation())
+
+        assert.notThat(matrixPackage.isPaid())
+        matrixPackage.pay(10)
+        assert.that(matrixPackage.isPaid())
     }
 
     test "Valores base mensajero nuevo" {
-        assert.equals(1, mensajeroOriginal.peso())
-        assert.notThat(matrix.dejarPasar(mensajeroOriginal))
-        mensajeroOriginal.credito(10)
-        assert.that(matrix.dejarPasar(mensajeroOriginal))
-        assert.that(puente.dejarPasar(mensajeroOriginal))
-    }
-
-    test "Todos pueden llevar el paquetito"{
-        assert.that(paquetito.puedeSerEntregadoPor(neo))
-        assert.that(paquetito.puedeSerEntregadoPor(morfeo))
-        assert.that(paquetito.puedeSerEntregadoPor(trinity))
-    }
-
-    test "Precio Paqueton" {
-        assert.equals(200, paqueton.precio())
-    }
-
-    test "Precio paquete" {
-        assert.equals(50, paquete.precio())
+        assert.equals(190, samPorter.weight())
+        assert.that(matrix.canPass(samPorter))
+        assert.that(bridge.canPass(samPorter))
     }
 
     test "La mensajeria puede entregar?"{
-        self.contratarTodos()
-        assert.that(mensajeria.puedeEntregar(paquete))
+        self.hire()
+        matrixPackage.pay(10)
+        assert.that(matrixDelivery.canDeliver(matrixPackage))
     }
 
-    test "Quienes pueden entregar el paquete?" {
-        self.contratarTodos()
-        paquete.pagar()
-        assert.equals(#{neo,morfeo,trinity,mensajeroOriginal},mensajeria.quienesPuedenEntregar(paquete))
+    test "Quienes pueden entregar el paquete nuevo?" {
+        self.hire()
+        matrixPackage.pay(10)
+        assert.equals(#{trinity,samPorter},matrixDelivery.whoCanDeliver(matrixPackage))
     }
 
-    test "Mensajeria con sobrepeso?"{
-        self.contratarTodos()
-        assert.notThat(mensajeria.sobrePeso())
-        camion.acoplados(100)
-        assert.that(mensajeria.sobrePeso())
-    }
-
-    test "La Mensajeria no puede entregar el paquete"{
-        mensajeria.enviar(paquete)
-        assert.equals(#{paquete}, mensajeria.pendientes())
+    test "La mensajeria no puede entregar el paquete nuevo"{
+        matrixDelivery.deliver(matrixPackage)
+        assert.equals(#{matrixPackage}, matrixDelivery.getPendingPackages())
     }
 
     test "Conocer la factuarion"{
-        mensajeria.contratarMensajero(mensajeroOriginal)
-        mensajeria.enviar(paquete)
-        assert.equals(50, mensajeria.balance())
+        matrixDelivery.hireCourier(samPorter)
+        matrixPackage.pay(10)
+        matrixDelivery.deliver(matrixPackage)
+        assert.equals(10, matrixDelivery.balance())
     }
 
     test "Enviar conjunto"{
-        self.contratarTodos()
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        assert.equals(250, mensajeria.balance()) // Si se envian los 2 deberia pasar de 0 a 250
+        self.hire()
+        bigPackage.pay(200)
+        matrixDelivery.deliverBatch(#{smallPackage,bigPackage})
+        assert.equals(200, matrixDelivery.balance())
     }
 
     test "No logra enviar conjunto"{
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        assert.equals(#{paquete,paqueton}, mensajeria.pendientes()) // Si se envian los 2 deberia pasar de 0 a 250
+        matrixDelivery.deliverBatch(#{simplePackage,bigPackage})
+        assert.equals(#{simplePackage,bigPackage}, matrixDelivery.getPendingPackages())
     }
 
     test "Enviar pendiente mas caro"{
-        mensajeria.enviarConjunto(#{paquete,paqueton})
-        self.contratarTodos()
-        mensajeria.enviarPendienteCaro()
-        assert.equals(#{paquete}, mensajeria.pendientes())
+        matrixDelivery.deliverBatch(#{simplePackage,bigPackage})
+        self.hire()
+        simplePackage.pay(50)
+        bigPackage.pay(200)
+        matrixDelivery.deliverMaxPendingPackage()
+        assert.equals(#{simplePackage}, matrixDelivery.getPendingPackages())
 
     }
 

@@ -4,11 +4,23 @@ class PackageSystem {
     const property pendingPackages = #{}
 
     method addPendingPackage(_package) {pendingPackages.add(_package)}
-    method removePendigPackage(_package) {pendingPackages.remove(_package)}
+    method removePendingPackage(_package) {pendingPackages.remove(_package)}
 
-    method deliver(_package) {_package.deliver()}
-    method deliverBatch(batch) {batch.forEach({_package => _package.deliver()})}
-    method deliverMaxPendingPackage() {self.getMaxPendingPackage().deliver()}
+    method deliver(service, _package) {
+        if (service.canDeliver(_package)){
+            _package.deliver()
+            service.addBalance(_package.price())
+            if (pendingPackages.contains(_package)) self.removePendingPackage(_package)
+        
+        }else self.addPendingPackage(_package)
+    }
+
+    method deliverBatch(service, batch) {batch.forEach({_package => self.deliver(service, _package)})}
+    method deliverMaxPendingPackage(service) {
+        const _package = self.getMaxPendingPackage()
+        self.deliver(service, _package)
+        self.removePendingPackage(_package)
+    }
 
     method getMaxPendingPackage() = pendingPackages.max({_package => _package.price()})
 }
@@ -17,76 +29,51 @@ class CourierSystem {
     const property couriers = #{}
 
     method hireCourier(courier) {couriers.add(courier)}
-    method fireCourier(courier) {if (couriers.contains(courier)) courier.remove(courier)}
+    method fireCourier(courier) {if (couriers.contains(courier)) couriers.remove(courier)}
     method fireAllCouriers() {couriers.clear()}
     
-    method whoCanDeliver(_package) {couriers.map({courier => _package.isDeliverable(courier)})}
+    method getCouriersCount() = couriers.size()
+    
+    method whoCanDeliver(_package) = couriers.filter({courier => _package.isDeliverable(courier)})
+    method canFirstDeliver(_package) = _package.isDeliverable(couriers.asList().first())
     
     method lastWeight() = couriers.asList().last().weight()
-
-    method canFirstDeliver(_package) = _package.isDeliverable(couriers.asList().first())
-
-    method averageWeight() = couriers.sum({courier => courier.weight()}) / couriers.size()
-    method getCouriersCount() = couriers.size()
+    method averageWeight() = if (couriers.size() > 0) couriers.sum({courier => courier.weight()}) / couriers.size() else 0
 }
 
 class CourierService {
     var property isLargeSize = 2
     var property overWeightLimit = 500
-    const packageSystem = new PackageSystem()
-    const couriersSystem = new CourierSystem()
+    const property packageSystem = new PackageSystem()
+    const property couriersSystem = new CourierSystem()
     var balance = 0
 
     method balance() = balance
+    method addBalance(amount) {balance += amount}
+    
     method canDeliver(_package) = couriersSystem.couriers().any({courier => _package.isDeliverable(courier)})
     method isLarge () = couriersSystem.getCouriersCount() > isLargeSize
     method overWeight() = couriersSystem.averageWeight() > overWeightLimit
 
+    /*CourierSystem*/
+    method getCouriers() = couriersSystem.couriers()
+
+    method hireCourier(courier) {couriersSystem.hireCourier(courier)}
+    method fireCourier(courier) {couriersSystem.fireCourier(courier)}
+    method fireAllCouriers() {couriersSystem.fireAllCouriers()}
+
+    method whoCanDeliver(_package) = couriersSystem.whoCanDeliver(_package)
+    method canFirstDeliver(_package) = couriersSystem.canFirstDeliver(_package)
+
+    method lastWeight() = couriersSystem.lastWeight()
+
+
     /*PackageSystem*/
-    method deliver(_package){
-        if (self.canDeliver(_package)){
-            packageSystem.deliver(_package)
-            balance += _package.price()
-        }else{
-            packageSystem.addPendingPackage(_package)
-        }
-    }
+    method getPendingPackages() = packageSystem.pendingPackages()
 
-
+    method deliver(_package){packageSystem.deliver(self, _package)}
+    method deliverBatch(batch) {packageSystem.deliverBatch(self, batch)}
+    method deliverMaxPendingPackage() {packageSystem.deliverMaxPendingPackage(self)}
 }
 
-object mensajeria {
-    const tamañoMensajeriaGrande = 2
-    const property mensajeros = #{}
-    const property pendientes = #{}
-    var property balance = 0
-
-    //method contratarMensajero(mensajero) {mensajeros.add(mensajero)}
-
-    //method despedir(mensajero) {if (mensajeros.contains(mensajero)) mensajeros.remove(mensajero)}
-
-    //method despedirTodos() {
-    //    mensajeros.clear()
-    //}
-
-    //method esGrande() = mensajeros.size() > tamañoMensajeriaGrande
-
-    method primeroPuedeEntregar(paquete) = paquete.puedeSerEntregadoPor(mensajeros.asList().first())
-    //method pesoUltimo() = mensajeros.asList().last().peso()
-
-    //method puedeEntregar(paquete) = self.quienesPuedenEntregar(paquete).any({mensajero => paquete.destino().dejarPasar(mensajero)})
-    //method quienesPuedenEntregar(paquete) = mensajeros.filter({mensajero => paquete.destino().dejarPasar(mensajero)})
-    //method sobrePeso() = mensajeros.map({mensajero => mensajero.peso()}).sum() / mensajeros.size() > 500
-    
-    method enviar(paquete) {
-        if (self.puedeEntregar(paquete)){
-            balance += paquete.precio()
-            if (pendientes.contains(paquete)){
-                pendientes.remove(paquete)
-            }
-        }else{
-            pendientes.add(paquete)
-        }
-    }
-    
-}
+const matrixDelivery = new CourierService()
