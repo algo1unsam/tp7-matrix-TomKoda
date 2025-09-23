@@ -18,11 +18,14 @@ class GroundMobility {
     method weight(courierWeight) = courierWeight + vehicle.weight()
 }
 
-class ByCreditComms {
-    method canCall(credit) = credit > 0
+class Comms {
+    method canCall(credit)
 }
-class BuiltInComms {
-    method canCall(credit) = true
+class ByCreditComms inherits Comms {
+    override method canCall(credit) = credit > 0
+}
+class BuiltInComms inherits Comms {
+    override method canCall(credit) = true
 }
 
 class Vehicle {
@@ -34,30 +37,34 @@ class VehicleWithTrailer inherits Vehicle {
     override method weight() = trailerCount * weight
 }
 
-class SimplePackage {
-    const property dropLocation
-    const property price = 0
+
+class Package {
+    const property price
     var isPaid = false
     var isDelivered = false
 
     method isDelivered() = isDelivered
     method isPaid() = isPaid
-    method pay() {isPaid = true}
-    method deliver() {isDelivered = true}
+
+    method pay(amount) {if (amount >= price) isPaid = true}
+    method deliver() {if (isPaid) isDelivered = true}
+}
+
+class SimplePackage inherits Package{
+    const property dropLocation
+
     method isDeliverable(courier) = isPaid && dropLocation.canPass(courier)
 }
-class MultiStopPackage {
+
+class MultiStopPackage inherits Package(price = 0){
     const property dropLocations
     const property remainingLocations = dropLocations
     const stopPrice = 100
     var amountPaid = 0
-    var isPaid = false
-    var isDelivered = false
-
-    method isDelivered() = isDelivered
-    method isPaid() = isPaid
-    method price() = stopPrice * dropLocations.size()
-    method pay(amount) {
+    
+    override method price() = stopPrice * dropLocations.size()
+    
+    override method pay(amount) {
         if (amount > self.price() - amountPaid){
             amountPaid += self.price() - amountPaid
         }else{
@@ -65,15 +72,15 @@ class MultiStopPackage {
         }
         if (amountPaid == self.price()) isPaid = true
     }
-    method deliver() {
+
+    override method deliver() {
         if (isPaid && !remainingLocations.isEmpty()) remainingLocations.remove(remainingLocations.first())
         if (isPaid && remainingLocations.isEmpty()) isDelivered = true
     }
 
-    method isDeliverable(courier) = isPaid && dropLocations.get(0).canPass(courier)
+    method isDeliverable(courier) = isPaid && dropLocations.all({location => location.canPass(courier)})
 }
-class SmallPackage inherits SimplePackage {
-    override method price() = 0
+class SmallPackage inherits SimplePackage(price = 0){
     override method isPaid() = true
 }
 
@@ -88,10 +95,12 @@ class WeightRestrictedLocation inherits Location {
     override method canPass(courier) = courier.weight() <= weightLimit
 }
 
+
+
 const matrix = new CommsRestrictedLocation()
 const bridge = new WeightRestrictedLocation(weightLimit = 1000)
 
-const simplePackage = new SimplePackage(dropLocation = bridge)
+const simplePackage = new SimplePackage(dropLocation = bridge, price = 50)
 const smallPackage = new SmallPackage(dropLocation = matrix)
 const bigPackage = new MultiStopPackage(dropLocations = [matrix,bridge])
 
